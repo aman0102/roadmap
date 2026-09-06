@@ -104,6 +104,25 @@ async function createAndStoreRefreshToken(userId) {
 
   return refreshToken;
 }
+
+async function logoutUser(refreshToken) {
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+  } catch (error) {
+    throw new AppError('Invalid or expired refresh token', 401);
+  }
+  const storedToken = await refreshTokenRepository.findByJti(decoded.jti);
+  if (!storedToken) {
+    throw new AppError('Refresh token not found', 401);
+  }
+  const isMatch = await bcrypt.compare(refreshToken, storedToken.token_hash);
+  if (!isMatch) {
+    throw new AppError('Invalid refresh token', 401);
+  }
+  await refreshTokenRepository.removeById(storedToken.id);
+  
+}
 module.exports = {
   getAllUsers,
   getUserById,
@@ -111,5 +130,6 @@ module.exports = {
   updateUser,
   deleteUser,
   loginUser,
-  refreshAccessToken
+  refreshAccessToken,
+  logoutUser
 };
