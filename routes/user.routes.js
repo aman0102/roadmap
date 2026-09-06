@@ -7,9 +7,9 @@ const authMiddleware = require('../middleware/auth.middleware');
 const authorizeUser = require('../middleware/authorizeUser.middleware');
     
 router.post('/', validate(createUserSchema), userController.createUser);
-router.get('/', userController.getAllUsers);
+router.get('/',authMiddleware, userController.getAllUsers);
 router.get('/:id',authMiddleware, validate(userIdSchema, 'params'), authorizeUser,userController.getUserById);
-router.patch('/:id',authMiddleware, validate(userIdSchema, 'params'),validate(updateUserSchema) ,userController.updateUser);
-router.delete('/:id', authMiddleware, validate(userIdSchema, 'params'), userController.deleteUser);
+router.patch('/:id',authMiddleware, validate(userIdSchema, 'params'),authorizeUser, validate(updateUserSchema) ,userController.updateUser);
+router.delete('/:id', authMiddleware, validate(userIdSchema, 'params'), authorizeUser, userController.deleteUser);
 
 module.exports = router;
