@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Local data and databases
+*.sqlite
+*.sqlite3
+*.db
+*.rdb
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+
+# Build and coverage output
+dist/
+build/
+coverage/
+.cache/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary files
+tmp/
+temp/

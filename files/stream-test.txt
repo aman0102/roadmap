@@ -1,0 +1,2 @@
+This is a sample text file for testing Node.js readable streams.
+The stream reads this file in small chunks so each chunk can be inspected.
