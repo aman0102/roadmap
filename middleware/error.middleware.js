@@ -20,7 +20,7 @@ const errorMiddleware = (error, req, res, next) => {
 
     return res.status(statusCode).json(response);
   }
-
+  
   // Handle JSON parsing errors (invalid JSON in request body)
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
     return res.status(400).json({
@@ -29,6 +29,7 @@ const errorMiddleware = (error, req, res, next) => {
   }
 
   // Unexpected errors are logged and a generic message is sent to the client
+  console.error(error.stack);
   return res.status(500).json({ message: 'Internal Server Error' });
 };
 
