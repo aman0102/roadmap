@@ -39,7 +39,7 @@ async function loginUser(email, password) {
   if (!isMatch) {
     throw new AppError('Invalid email or password', 401);
   }
-  const accessToken = generateAccessToken(user.id, user.email);
+  const accessToken = generateAccessToken(user.id, user.email, user.role);
   const refreshToken = await createAndStoreRefreshToken(user.id);
   return {
     accessToken,
@@ -47,7 +47,8 @@ async function loginUser(email, password) {
     user:{ 
       id: user.id, 
       name: user.name, 
-      email: user.email 
+      email: user.email,
+      role: user.role
     }
   }
 }
@@ -80,9 +81,9 @@ async function refreshAccessToken(refreshToken) {
   await refreshTokenRepository.removeById(storedToken.id);
   const newRefreshToken = await createAndStoreRefreshToken(decoded.id); 
   // Fetch the user details from the database using the decoded id from the refresh token
-  const {email} = await userRepository.findById(decoded.id);
+  const user = await userRepository.findById(decoded.id);
   // Generate a new access token
-  const accessToken = generateAccessToken(decoded.id, email);
+  const accessToken = generateAccessToken(user.id, user.email, user.role);
   return { accessToken, refreshToken: newRefreshToken }; 
 }
 // helper function to create and store a refresh token in the database to avoid repetition of code in the loginUser and refreshAccessToken functions
@@ -123,6 +124,23 @@ async function logoutUser(refreshToken) {
   await refreshTokenRepository.removeById(storedToken.id);
   
 }
+/*
+targetUserId     → whose role are we changing?
+role             → what role are we assigning?
+requestingUserId → who is making the request?
+*/
+async function updateUserRole(targetUserId, role, requestingUserId) {
+  if(targetUserId===requestingUserId){
+        throw new AppError(
+        'You cannot change your own role',
+        403
+    );
+  }
+  const result = await userRepository.updateRole(targetUserId, role);
+  if (!result) {
+      throw new AppError('User not found', 404);
+  }
+}
 module.exports = {
   getAllUsers,
   getUserById,
@@ -131,5 +149,6 @@ module.exports = {
   deleteUser,
   loginUser,
   refreshAccessToken,
-  logoutUser
+  logoutUser,
+  updateUserRole
 };

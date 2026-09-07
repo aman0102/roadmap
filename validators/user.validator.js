@@ -34,9 +34,14 @@ const updateUserSchema = z.object({
 const userIdSchema = z.object({
     id: z.coerce.number().int().positive({message: 'User ID must be a positive number'})
 });
+//  Role can be either 'user' or 'admin', this schema is used to validate the role of a user when updating the role of a user, this schema should only be used by an admin user
+const updateUserRoleSchema = z.object({
+    role: z.enum(['user', 'admin'])
+});
 
 module.exports = {
     createUserSchema,
     updateUserSchema,
-    userIdSchema
+    userIdSchema,
+    updateUserRoleSchema
 }

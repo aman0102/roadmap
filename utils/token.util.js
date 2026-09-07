@@ -1,9 +1,13 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-function generateAccessToken(userId, email) {
+function generateAccessToken(userId, email, role) {
     return jwt.sign(
-        { id: userId, email: email },
+        { 
+            id: userId,
+            email: email, 
+            role: role
+        },
         process.env.JWT_SECRET,
         {
             expiresIn: '15m'
