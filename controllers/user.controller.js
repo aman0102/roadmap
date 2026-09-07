@@ -3,16 +3,16 @@ const AppError = require('../utils/AppError');
 
 async function getAllUsers(req, res) {
   const users = await userService.getAllUsers();
-  res.json(users);
+  return res.json(users);
 }
 
-const getUserById = async (req, res) => {
-    const user = await userService.getUserById(req.params.id);
-    if (!user) {
-        throw new AppError('User not found', 404);
-    }
-    return res.json(user);
-};
+async function getUserById(req, res) {
+  const user = await userService.getUserById(req.params.id);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+  return res.json(user);
+}
 
 async function createUser(req, res) {
   const newUser = await userService.createUser(req.body || {});
@@ -21,13 +21,10 @@ async function createUser(req, res) {
 
 async function updateUser(req, res) {
   // Placeholder for update user logic
-  const user = await userService.updateUser(
-    req.params.id,
-    req.body);
+  const user = await userService.updateUser(req.params.id, req.body);
   if (!user) {
     throw new AppError('User not found', 404);
   }
-
   return res.json(user);
 }
 
@@ -37,8 +34,9 @@ async function deleteUser(req, res) {
   if (!user) {
     throw new AppError('User not found', 404);
   }
-  return res.json({ message: 'User deleted successfully' ,
-    user
+  return res.json({
+    message: 'User deleted successfully',
+    user,
   });
 }
 
@@ -46,10 +44,10 @@ async function updateUserRole(req, res) {
   const { id } = req.params;
   const { role } = req.body;
 
-  const user = await userService.updateUserRole(id, role, req.user.id);
+  const user = await userService.updateUserRole(id, role, req.user && req.user.id);
   return res.json({
-    message: 'User role updated successfully', 
-    user:user
+    message: 'User role updated successfully',
+    user,
   });
 }
 
@@ -59,5 +57,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  updateUserRole
+  updateUserRole,
 };
