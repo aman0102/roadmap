@@ -20,14 +20,14 @@
 const {z} = require('zod');
 // Both schemas are same but still created two different schemas for better understanding and future scalability.
 const createUserSchema = z.object({
-    name: z.string().min(2, {message: 'Name must be at least 2 characters long'}),
-    email: z.email({message: 'Invalid email address'}),
+    name: z.string().trim().min(2, {message: 'Name must be at least 2 characters long'}),
+    email: z.email({message: 'Invalid email address'}).transform(email => email.toLowerCase()),
     password: z.string().min(8, {message: 'Password must be at least 8 characters long'})
 });
 
 const updateUserSchema = z.object({
-    name: z.string().min(2, {message: 'Name must be at least 2 characters long'}).optional(),
-    email: z.email({message: 'Invalid email address'}).optional(),
+    name: z.string().trim().min(2, {message: 'Name must be at least 2 characters long'}).optional(),
+    email: z.email({message: 'Invalid email address'}).optional().transform(email => email.toLowerCase()),
     password: z.string().min(8, {message: 'Password must be at least 8 characters long'}).optional()
 });
 
