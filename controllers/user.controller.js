@@ -42,11 +42,22 @@ async function deleteUser(req, res) {
   });
 }
 
+async function updateUserRole(req, res) {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const user = await userService.updateUserRole(id, role, req.user.id);
+  return res.json({
+    message: 'User role updated successfully', 
+    user:user
+  });
+}
 
 module.exports = {
   getAllUsers,
   getUserById,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  updateUserRole
 };
