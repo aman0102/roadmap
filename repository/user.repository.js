@@ -6,9 +6,46 @@ async function findById(id) {
     const result = await pool.query('SELECT id, name, email, role FROM users where id = $1', [id]);
     return result.rows[0] || null;
 }
-async function findAll() {
-    const result = await pool.query('SELECT id, name, email, role FROM users');
+async function findAll(limit, offset, role, search, sort, order) {
+    // here we explixitly telling db that $3 is a text type and if role is not provided then it will be null, this is important
+    // because if we don't do this then the query will fail because role is an enum type and null is not a valid enum value
+    /*
+     $3 = NULL
+      ↓
+     $3::text IS NULL → TRUE
+      ↓
+    all users
+    */
+    const allowedSortColumns = { id: 'id', name: 'name', email: 'email', role: 'role' };
+    const sortColumn = allowedSortColumns[sort] || 'id'; // Default to 'id' if invalid sort column is provided
+    const sortOrder = order === 'desc' ? 'DESC' : 'ASC'; // Default to 'ASC' if invalid order is provided
+    console.log(sortColumn, sortOrder);
+    const result = await pool.query(
+       `SELECT id, name, email, role 
+        FROM users 
+        WHERE ($3::text IS NULL OR role = $3)
+        AND (
+             $4::text IS NULL
+             OR name ILIKE '%' || $4 || '%'
+             OR email ILIKE '%' || $4 || '%'
+        )
+        ORDER BY LOWER(${sortColumn}) ${sortOrder},id
+        LIMIT $1 OFFSET $2`, 
+        [limit, offset, role || null, search || null]
+    );
     return result.rows;
+}
+async function countUsers(role, search) {
+    const result = await pool.query(
+        `SELECT COUNT(*) 
+        FROM users WHERE ($1::text IS NULL OR role = $1)
+        AND (
+             $2::text IS NULL
+             OR name ILIKE '%' || $2 || '%'
+             OR email ILIKE '%' || $2 || '%'
+         )`, [role || null, search || null]
+    );
+    return Number(result.rows[0].count);
 }
 async function create(user) {
     const { name, email, password } = user;
@@ -39,6 +76,7 @@ async function updateRole(id, role) {
 module.exports = {
     findById,
     findAll,
+    countUsers,
     create,
     update,
     remove,

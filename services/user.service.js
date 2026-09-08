@@ -5,8 +5,12 @@ const {generateRefreshToken, generateAccessToken} = require('../utils/token.util
 const AppError = require('../utils/AppError');
 const jwt = require('jsonwebtoken');
 
-async function getAllUsers() {
-  return userRepository.findAll();
+async function getAllUsers(page, limit, role, search, sort, order) {
+  const offset = (page - 1) * limit;
+  const users = await userRepository.findAll(limit, offset, role, search, sort, order);
+  const totalUsers = await userRepository.countUsers(role, search);
+  const totalPages = Math.ceil(totalUsers / limit);
+  return { users, page, totalUsers, limit, totalPages };
 }
 
 async function getUserById(id) {
