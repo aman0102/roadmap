@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
-const { createUserSchema, updateUserSchema, userIdSchema, updateUserRoleSchema} = require('../validators/user.validator');
+const { createUserSchema, updateUserSchema, userIdSchema, updateUserRoleSchema, paginationSchema} = require('../validators/user.validator');
 const { validate } =require( '../middleware/validate.middleware');
 const authMiddleware = require('../middleware/auth.middleware');
 const authorizeUser = require('../middleware/authorizeUser.middleware');
 const authorizeRoles = require('../middleware/role.middleware');
     
 router.post('/', validate(createUserSchema), userController.createUser);
-router.get('/',authMiddleware, authorizeRoles('admin'), userController.getAllUsers);
+router.get('/',authMiddleware, authorizeRoles('admin'), validate(paginationSchema, 'query'), userController.getAllUsers);
 /*
 For admin role test
 router.get('/admin-test', authMiddleware, authorizeRoles('admin'), (req, res) => {

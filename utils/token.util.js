@@ -10,7 +10,8 @@ function generateAccessToken(userId, email, role) {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: '15m'
+            //expiresIn: '15m'
+            expiresIn: '3h' // For testing purpose, change it to 15m in production
         }
     );
 }

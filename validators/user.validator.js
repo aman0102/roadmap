@@ -39,9 +39,19 @@ const updateUserRoleSchema = z.object({
     role: z.enum(['user', 'admin'])
 });
 
+const paginationSchema = z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+    role: z.enum(['user', 'admin']).optional(),
+    search: z.string().trim().optional(),
+    sort: z.enum(['id', 'name', 'email']).default('id'),
+    order: z.enum(['asc', 'desc']).default('asc')
+});
+
 module.exports = {
     createUserSchema,
     updateUserSchema,
     userIdSchema,
-    updateUserRoleSchema
+    updateUserRoleSchema,
+    paginationSchema
 }
