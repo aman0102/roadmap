@@ -144,6 +144,7 @@ async function updateUserRole(targetUserId, role, requestingUserId) {
   if (!result) {
       throw new AppError('User not found', 404);
   }
+  return result;
 }
 
 module.exports = {
