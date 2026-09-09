@@ -27,7 +27,7 @@ const createUserSchema = z.object({
 
 const updateUserSchema = z.object({
     name: z.string().trim().min(2, {message: 'Name must be at least 2 characters long'}).optional(),
-    email: z.email({message: 'Invalid email address'}).optional().transform(email => email.toLowerCase()),
+    email: z.email({message: 'Invalid email address'}).transform(email => email.toLowerCase()).optional(),
     password: z.string().min(8, {message: 'Password must be at least 8 characters long'}).optional()
 });
 

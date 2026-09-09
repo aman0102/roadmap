@@ -1,5 +1,5 @@
 const AppError = require('../utils/AppError');
-const pool = require('../config/database');
+const {pool} = require('../config/database');
 
 async function findById(id) {
     //throw new Error('Database connection failed');
@@ -15,11 +15,16 @@ async function findAll(limit, offset, role, search, sort, order) {
      $3::text IS NULL → TRUE
       ↓
     all users
+
+    CODE LOGIC
+    ORDER BY ${ sortColumn==='id' ? `id $(sortOrder)`: `LOWER($(sortColumn)) $(sortOrder)` },id ASC
+    since id can not be passed to LOWER function because it is an integer type, so we are checking if sortColumn 
+    is id then we are ordering by id and if it is not id then we are ordering by LOWER(sortColumn) and then by id
+    in ascending order to maintain the order of the records when the sortColumn has duplicate values.
     */
     const allowedSortColumns = { id: 'id', name: 'name', email: 'email', role: 'role' };
     const sortColumn = allowedSortColumns[sort] || 'id'; // Default to 'id' if invalid sort column is provided
     const sortOrder = order === 'desc' ? 'DESC' : 'ASC'; // Default to 'ASC' if invalid order is provided
-    console.log(sortColumn, sortOrder);
     const result = await pool.query(
        `SELECT id, name, email, role 
         FROM users 
@@ -29,7 +34,11 @@ async function findAll(limit, offset, role, search, sort, order) {
              OR name ILIKE '%' || $4 || '%'
              OR email ILIKE '%' || $4 || '%'
         )
-        ORDER BY LOWER(${sortColumn}) ${sortOrder},id
+        ORDER BY ${
+            sortColumn === 'id'
+                ? `id ${sortOrder}`
+                : `LOWER(${sortColumn}) ${sortOrder}`
+        }, id ASC
         LIMIT $1 OFFSET $2`, 
         [limit, offset, role || null, search || null]
     );
@@ -57,11 +66,11 @@ async function create(user) {
 async function update(id, updatedUser) {
     const { name, email, password } = updatedUser;
     // updating a user but not role because user must not be allowed to set their own role to 'admin' or any other role, this is a security risk
-    const result = await pool.query('UPDATE users SET name = COALESCE($1, name), email = COALESCE($2, email), password = COALESCE($3, password) WHERE id = $4 RETURNING id, name, email', [name, email, password, id]);
+    const result = await pool.query('UPDATE users SET name = COALESCE($1, name), email = COALESCE($2, email), password = COALESCE($3, password) WHERE id = $4 RETURNING id, name, email, role', [name, email, password, id]);
     return result.rows[0] || null;
 }
 async function remove(id) {
-  const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, name, email', [id]);
+  const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, name, email, role', [id]);
   return result.rows[0] || null;
 }
 async function findByEmail(email) {

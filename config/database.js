@@ -8,4 +8,11 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-module.exports = pool;
+async function closePool() {
+  await pool.end();
+}
+
+module.exports = {
+  pool,
+  closePool
+};
