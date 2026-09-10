@@ -1,7 +1,6 @@
 const request = require('supertest');
 const app = require('../app'); // Adjust the path to your Express app
 const jwt = require('jsonwebtoken');
-const { closePool } = require('../config/database'); // Adjust the path to your database configuration
 describe('GET /users', () => {
      beforeAll(async () => {
         const loginResponse = await request(app)
@@ -411,7 +410,4 @@ describe('GET /users', () => {
         expect(response.body.message).toBe('User not found');
     });
     
-});
-afterAll(async () => {
-    await closePool();
 });

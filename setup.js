@@ -11,3 +11,7 @@ beforeAll(async () => {
         ['Admin Test User', 'admin@gmail.com', hashedPassword, 'admin']
     );
 });
+
+afterAll(async () => {
+    await pool.end();
+});
