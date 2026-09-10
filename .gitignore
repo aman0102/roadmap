@@ -3,6 +3,7 @@ node_modules/
 
 # Environment and secrets
 .env
+.env.test
 .env.*
 !.env.example
 !.env.template

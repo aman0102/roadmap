@@ -6,7 +6,7 @@ let accessToken;
 
 describe('POST /auth/login', () => {
     
-        beforeAll(async () => {
+    beforeAll(async () => {
         const response = await request(app)
             .post('/auth/login')
             .send({

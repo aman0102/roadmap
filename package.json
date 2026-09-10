@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "stream:test": "node stream-test.js",
-    "test": "jest"
+    "test": "dotenv -e .env.test -- jest --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "dotenv-cli": "^11.0.0",
     "jest": "^30.5.1",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
