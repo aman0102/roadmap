@@ -5,21 +5,32 @@
   "scripts": {
     "dev": "nodemon server.js",
     "stream:test": "node stream-test.js",
-    "test": "dotenv -e .env.test -- jest --runInBand"
+    "test": "dotenv -e .env.test -- jest --runInBand",
+    "migrate": "node-pg-migrate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/s3-request-presigner": "^3.1141.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^6.3.8",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
+    "file-type": "^21.3.4",
     "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0",
+    "node-pg-migrate": "^9.0.0",
+    "nodemailer": "^10.0.10",
     "pg": "^8.23.0",
+    "pino": "^10.3.1",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0",
     "zod": "^4.5.4"

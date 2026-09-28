@@ -4,13 +4,40 @@ const refreshTokenRepository = require('../repository/refreshToken.repository');
 const {generateRefreshToken, generateAccessToken} = require('../utils/token.util');
 const AppError = require('../utils/AppError');
 const jwt = require('jsonwebtoken');
+const withTransaction = require('../utils/transaction');
+const { invalidateUsersCache } = require('../utils/cache.js');
+// For caching
+const redisClient = require('../config/redis.client');
 
 async function getAllUsers(page, limit, role, search, sort, order) {
+  // Create a unique cache key based on the query parameters
+  const cacheKey = `users:${page}:${limit}:${role || 'all'}:${search || ''}:${sort || 'id'}:${order || 'asc'}`;
+  // Check if the data is already cached in Redis
+  const cachedUsers = await redisClient.get(cacheKey);
+  //
+  if (cachedUsers) {
+    console.log('Users found in Redis');
+    return JSON.parse(cachedUsers);
+  }
+  // If not found in Redis, fetch from the database
+  console.log('Users not found in Redis');
   const offset = (page - 1) * limit;
+
   const users = await userRepository.findAll(limit, offset, role, search, sort, order);
   const totalUsers = await userRepository.countUsers(role, search);
   const totalPages = Math.ceil(totalUsers / limit);
-  return { users, page, totalUsers, limit, totalPages };
+  const result = {
+    users,
+    page,
+    totalUsers,
+    limit,
+    totalPages
+  };
+  // Store the result in Redis with an expiration time (e.g., 60 seconds)
+  // so that if we fetch the same data again within that time, we can get it from Redis instead of querying the database again.
+  await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 60 ); // Cache for 1 minute
+  return result;
+  //return { users, page, totalUsers, limit, totalPages };
 }
 
 async function getUserById(id) {
@@ -19,7 +46,47 @@ async function getUserById(id) {
 
 async function createUser(user) {
   const hashedPassword = await bcrypt.hash(user.password, 12);
-  return userRepository.create({ ...user, password: hashedPassword });
+  const createdUser = await userRepository.create({ ...user, password: hashedPassword });
+  // Invalidate the cache for the users list since a new user has been added/
+  // here users:* , Redis DEL does not interpret * as a wildcard.
+  await invalidateUsersCache();
+  return createdUser;
+}
+
+async function createUserWithTransaction(user) {
+  return withTransaction(async (client) => {
+
+     // 1. Hash password
+    const hashedPassword = await bcrypt.hash(user.password, 12);
+
+     // 2. Create user
+    const newUser =  await userRepository.createUserWithClient(client, { ...user, password: hashedPassword });
+
+    // 3. Generate refresh token
+    const { refreshToken, jti } = generateRefreshToken(newUser.id);
+
+    // 4. Hash refresh token
+    const tokenHash = await bcrypt.hash(refreshToken, 12);
+    
+    // 5. Calculate expiry
+    const expiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    );
+
+    // 6. Store refresh token using SAME transaction client
+    await refreshTokenRepository.createWithClient(client,{
+      userId: newUser.id,
+      jti,
+      tokenHash,
+      expiresAt
+    });
+
+    // 7. Return both
+    return {
+      user: newUser,
+      refreshToken
+    };
+  });
 }
 
 async function updateUser(id, updatedUser) {
@@ -27,11 +94,15 @@ async function updateUser(id, updatedUser) {
   if (hashedPassword) {
     updatedUser.password = hashedPassword;
   }
-  return userRepository.update(id, updatedUser);
+  const updated = await userRepository.update(id, updatedUser);
+  await invalidateUsersCache(); // Invalidate the cache for the users list since a user has been updated
+  return updated;
 }
 
 async function deleteUser(id) {
-  return userRepository.remove(id);
+  const deletedUser = await userRepository.remove(id);
+  await invalidateUsersCache(); // Invalidate the cache for the users list since a user has been deleted
+  return deletedUser;
 }
 // login password comparison
 async function loginUser(email, password) {
@@ -151,6 +222,7 @@ module.exports = {
   getAllUsers,
   getUserById,
   createUser,
+  createUserWithTransaction,
   updateUser,
   deleteUser,
   loginUser,

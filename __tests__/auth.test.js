@@ -238,9 +238,9 @@ describe('POST /auth/login', () => {
             .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).toBe(200);
-        response.body.users.forEach(user=>{
+        response.body.data.users.forEach(user=>{
             expect(user).not.toHaveProperty('password');
-        })
+        })  
     });
 
     test('should set a new refresh token cookie after refresh', async () => {

@@ -1,12 +1,13 @@
 const userService = require('../services/user.service');
 const AppError = require('../utils/AppError');
+const { successResponse } = require('../utils/response');
 
 async function getAllUsers(req, res) {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const { role, search, sort, order} = req.query; // Optional role and search filter
   const users = await userService.getAllUsers(page, limit, role, search, sort, order);
-  return res.json(users);
+  return successResponse(res, 200, users);
 }
   
 async function getUserById(req, res) {
@@ -14,12 +15,12 @@ async function getUserById(req, res) {
   if (!user) {
     throw new AppError('User not found', 404);
   }
-  return res.json(user);
+  return successResponse(res, 200, user);
 }
 
 async function createUser(req, res) {
   const newUser = await userService.createUser(req.body || {});
-  return res.status(201).json(newUser);
+  return successResponse(res, 201, newUser);
 }
 
 async function updateUser(req, res) {
@@ -28,7 +29,7 @@ async function updateUser(req, res) {
   if (!user) {
     throw new AppError('User not found', 404);
   }
-  return res.json(user);
+  return successResponse(res, 200, user);
 }
 
 async function deleteUser(req, res) {
@@ -37,10 +38,12 @@ async function deleteUser(req, res) {
   if (!user) {
     throw new AppError('User not found', 404);
   }
-  return res.json({
-    message: 'User deleted successfully',
+  return successResponse(
+    res,
+    200,
     user,
-  });
+    'User deleted successfully'
+  );
 }
 
 async function updateUserRole(req, res) {
@@ -48,10 +51,12 @@ async function updateUserRole(req, res) {
   const { role } = req.body;
 
   const user = await userService.updateUserRole(id, role, req.user && req.user.id);
-  return res.json({
-    message: 'User role updated successfully',
+  return successResponse(
+    res,
+    200,
     user,
-  });
+    'User role updated successfully'
+  );
 }
 
 module.exports = {

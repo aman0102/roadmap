@@ -4,7 +4,7 @@ async function login(req, res) {
     const result = await userService.loginUser(email, password);
     res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
-    secure: false, // Set to true if using HTTPS
+    secure: process.env.NODE_ENV === 'production',// Set to true if using HTTPS
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -23,7 +23,7 @@ async function refresh(req, res) {
     const result = await userService.refreshAccessToken(refreshToken);
     res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',// Set to true if using HTTPS
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -43,7 +43,7 @@ async function logout(req, res) {
     await userService.logoutUser(refreshToken);
     res.clearCookie('refreshToken', {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
     });
 
