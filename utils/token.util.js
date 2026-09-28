@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const config = require('../config/env');
 
 function generateAccessToken(userId, email, role) {
     return jwt.sign(
@@ -8,10 +9,10 @@ function generateAccessToken(userId, email, role) {
             email: email, 
             role: role
         },
-        process.env.JWT_SECRET,
+        config.jwt.secret,
         {
-            //expiresIn: '15m'
-            expiresIn: '3h' // For testing purpose, change it to 15m in production
+            expiresIn: '15m'
+            //expiresIn: '3h' // For testing purpose, change it to 15m in production
         }
     );
 }
@@ -22,7 +23,7 @@ function generateRefreshToken(userId) {
         { id: userId,
           jti: jti 
         },
-        process.env.JWT_REFRESH_SECRET,
+        config.jwt.refreshSecret,
         {
             expiresIn: '7d'
         }

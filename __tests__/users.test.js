@@ -1,6 +1,8 @@
 const request = require('supertest');
 const app = require('../app'); // Adjust the path to your Express app
 const jwt = require('jsonwebtoken');
+let adminToken;
+let userToken;
 describe('GET /users', () => {
      beforeAll(async () => {
         const loginResponse = await request(app)
@@ -22,7 +24,7 @@ describe('GET /users', () => {
         const userLoginResponse = await request(app)
             .post('/auth/login')
             .send({
-                email: userResponse.body.email,
+                email: userResponse.body.data.email,
                 password: 'password123'
             });
 
@@ -41,12 +43,12 @@ describe('GET /users', () => {
                 .get('/users')
                 .set('Authorization', `Bearer ${accessToken}`);
         expect(response.status).toBe(200)
-        expect(response.body).toHaveProperty('users');
-        expect(response.body).toHaveProperty('page');
-        expect(response.body).toHaveProperty('limit');
-        expect(response.body).toHaveProperty('totalUsers');
-        expect(response.body).toHaveProperty('totalPages');
-        expect(Array.isArray(response.body.users)).toBe(true);
+        expect(response.body.data).toHaveProperty('users');
+        expect(response.body.data).toHaveProperty('page');
+        expect(response.body.data).toHaveProperty('limit');
+        expect(response.body.data).toHaveProperty('totalUsers');
+        expect(response.body.data).toHaveProperty('totalPages');
+        expect(Array.isArray(response.body.data.users)).toBe(true);
     });
     test('should return 403 for an authenticated non-admin user', async () => {
         const accessToken = userToken;
@@ -62,9 +64,9 @@ describe('GET /users', () => {
                 .get('/users?page=1&limit=2')
                 .set('Authorization', `Bearer ${accessToken}`);
         expect(response.status).toBe(200);
-        expect(response.body.page).toBe(1);
-        expect(response.body.limit).toBe(2);
-        expect(response.body.users.length).toBeLessThanOrEqual(2);
+        expect(response.body.data.page).toBe(1);
+        expect(response.body.data.limit).toBe(2);
+        expect(response.body.data.users.length).toBeLessThanOrEqual(2);
     });
     test('should filter users by role', async () => {
         const accessToken = adminToken;
@@ -73,9 +75,10 @@ describe('GET /users', () => {
             .get('/users?role=user')
             .set('Authorization', `Bearer ${accessToken}`);
 
+        console.log('ROLE FILTER RESPONSE:', response.body.data.users);
         expect(response.status).toBe(200);
 
-        response.body.users.forEach(user => {
+        response.body.data.users.forEach(user => {
             expect(user.role).toBe('user');
         });
     });
@@ -88,7 +91,7 @@ describe('GET /users', () => {
 
         expect(response.status).toBe(200);
 
-        response.body.users.forEach(user =>{
+        response.body.data.users.forEach(user =>{
             const matchesName = user.name.toLowerCase().includes('admin');
             const matchesEmail = user.email.toLowerCase().includes('admin');
             expect(matchesName || matchesEmail).toBe(true);
@@ -103,7 +106,7 @@ describe('GET /users', () => {
 
         expect(response.status).toBe(200);
 
-        const users = response.body.users;
+        const users = response.body.data.users;
 
         for(let i=0; i<users.length-1; i++){
             expect(users[i].name.toLowerCase() >= users[i+1].name.toLowerCase()).toBe(true);
@@ -155,11 +158,11 @@ describe('GET /users', () => {
                 password: 'password123'
             });
         expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty('id');
-        expect(response.body.name).toBe('Test User');
-        expect(response.body.email).toContain('test-');
-        expect(response.body).toHaveProperty('role');
-        expect(response.body).not.toHaveProperty('password');
+        expect(response.body.data).toHaveProperty('id');
+        expect(response.body.data.name).toBe('Test User');
+        expect(response.body.data.email).toContain('test-');
+        expect(response.body.data).toHaveProperty('role');
+        expect(response.body.data).not.toHaveProperty('password');
     });
     test('should return a user by id', async () => {
         
@@ -170,17 +173,17 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const userId = createResponse.body.id;
+        const userId = createResponse.body.data.id;
         const response = await request(app)
             .get(`/users/${userId}`)
             .set('Authorization', `Bearer ${adminToken}`);
         expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty('id');
-        expect(response.body).toHaveProperty('role');
-        expect(response.body.id).toBe(userId);
-        expect(response.body.name).toBe('Get User Test');
-        expect(response.body.email).toContain('test-');
-        expect(response.body).not.toHaveProperty('password');
+        expect(response.body.data).toHaveProperty('id');
+        expect(response.body.data).toHaveProperty('role');
+        expect(response.body.data.id).toBe(userId);
+        expect(response.body.data.name).toBe('Get User Test');
+        expect(response.body.data.email).toContain('test-');
+        expect(response.body.data).not.toHaveProperty('password');
     });
     test('should update a user', async () => {
         
@@ -191,7 +194,7 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const userId = createResponse.body.id;
+        const userId = createResponse.body.data.id;
         const response = await request(app)
             .patch(`/users/${userId}`)
             .set('Authorization', `Bearer ${adminToken}`)
@@ -199,11 +202,11 @@ describe('GET /users', () => {
                 name: 'Updated test'
             });
         expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty('id');
-        expect(response.body).toHaveProperty('role');
-        expect(response.body.id).toBe(userId);
-        expect(response.body.name).toBe('Updated test');
-        expect(response.body).not.toHaveProperty('password');
+        expect(response.body.data).toHaveProperty('id');
+        expect(response.body.data).toHaveProperty('role');
+        expect(response.body.data.id).toBe(userId);
+        expect(response.body.data.name).toBe('Updated test');
+        expect(response.body.data).not.toHaveProperty('password');
     });
     test('should delete a user', async () => {
         
@@ -214,16 +217,16 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const userId = createResponse.body.id;
+        const userId = createResponse.body.data.id;
         const response = await request(app)
             .delete(`/users/${userId}`)
             .set('Authorization', `Bearer ${adminToken}`);
         expect(response.status).toBe(200);
-        expect(response.body.user).toHaveProperty('id');
-        expect(response.body.user).toHaveProperty('role');
-        expect(response.body.user.id).toBe(userId);
-        expect(response.body.user.name).toBe('Delete test User');
-        expect(response.body.user).not.toHaveProperty('password');
+        expect(response.body.data).toHaveProperty('id');
+        expect(response.body.data).toHaveProperty('role');
+        expect(response.body.data.id).toBe(userId);
+        expect(response.body.data.name).toBe('Delete test User');
+        expect(response.body.data).not.toHaveProperty('password');
     });
     test('should return 403 when a user tries to update another user', async () => {
         
@@ -234,7 +237,7 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const targetUserId = createResponse.body.id;
+        const targetUserId = createResponse.body.data.id;
 
         const response = await request(app)
             .patch(`/users/${targetUserId}`)
@@ -254,7 +257,7 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const targetUserId = createResponse.body.id;
+        const targetUserId = createResponse.body.data.id;
 
         const response = await request(app)
             .delete(`/users/${targetUserId}`)
@@ -270,7 +273,7 @@ describe('GET /users', () => {
                 email: `test-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const targetUserId = createResponse.body.id;
+        const targetUserId = createResponse.body.data.id;
 
         const response = await request(app)
             .get(`/users/${targetUserId}`)
@@ -287,7 +290,7 @@ describe('GET /users', () => {
                 email: `role-${Date.now()}@example.com`,
                 password: 'password123'
             });
-        const userId = userResponse.body.id;
+        const userId = userResponse.body.data.id;
 
         const response = await request(app)
             .patch(`/users/${userId}/role`)
@@ -296,11 +299,11 @@ describe('GET /users', () => {
                 role: 'admin'
             });
         expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty('user'); 
-        expect(response.body.user).toHaveProperty('id'); 
-        expect(response.body.user).toHaveProperty('role'); 
-        expect(response.body.user.id).toBe(userId); 
-        expect(response.body.user.role).toBe('admin');
+        // expect(response.body.data).toHaveProperty('user'); 
+        expect(response.body.data).toHaveProperty('id'); 
+        expect(response.body.data).toHaveProperty('role'); 
+        expect(response.body.data.id).toBe(userId); 
+        expect(response.body.data.role).toBe('admin');
     });
     test('should return 403 when a normal user tries to change another user role', async () => {
         
@@ -312,7 +315,7 @@ describe('GET /users', () => {
                 password: 'password123'
             });
         expect(targetResponse.status).toBe(201);
-        const targetUserId = targetResponse.body.id;
+        const targetUserId = targetResponse.body.data.id;
 
         const response = await request(app)
             .patch(`/users/${targetUserId}/role`)
@@ -347,7 +350,7 @@ describe('GET /users', () => {
                 password: 'password123'
             });
         expect(targetResponse.status).toBe(201);
-        const targetUserId = targetResponse.body.id;
+        const targetUserId = targetResponse.body.data.id;
 
         const response = await request(app)
             .patch(`/users/${targetUserId}/role`)

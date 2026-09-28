@@ -63,6 +63,12 @@ async function create(user) {
     const newUser = await pool.query('INSERT into users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, role', [name, email, password]);
     return newUser.rows[0];
 }
+
+async function createUserWithClient(client, user) {
+    const result = await client.query('INSERT into users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, role', [user.name, user.email, user.password]);
+    return result.rows[0];
+}
+
 async function update(id, updatedUser) {
     const { name, email, password } = updatedUser;
     // updating a user but not role because user must not be allowed to set their own role to 'admin' or any other role, this is a security risk
@@ -87,6 +93,7 @@ module.exports = {
     findAll,
     countUsers,
     create,
+    createUserWithClient,
     update,
     remove,
     findByEmail,
