@@ -13,6 +13,7 @@ const emailRoutes = require('./routes/email.routes');
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
+const healthRoutes = require('./routes/health.routes');
 
 const errorMiddleware = require('./middleware/error.middleware');
 const loggerMiddleware = require('./middleware/logger.middleware')
@@ -38,6 +39,7 @@ app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/emails', emailRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/health', healthRoutes);
 //Register this function with Express. If an error reaches the error-handling stage, use this function.
 app.use(errorMiddleware);
 module.exports = app;

@@ -1,8 +1,11 @@
 const queue = [];
+const logger = require('../utils/logger');
 
 function addJob(job){
     queue.push(job);
-    console.log('job added', job);
+    logger.info({
+        jobId: job.id
+    }, 'Job added');
 }
 
 function getNextJob(){

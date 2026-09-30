@@ -2,6 +2,7 @@ const { PutObjectCommand , GetObjectCommand, DeleteObjectCommand, HeadObjectComm
 const s3Client = require("../config/s3")
 const AppError = require("./AppError");
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const logger = require('./logger');
 
 // The key is how we tell S3 which file we're talking about.
 async function uploadToS3(file, key) {
@@ -12,14 +13,14 @@ async function uploadToS3(file, key) {
     });
 
     const result = await s3Client.send(command);
-    console.log(`File uploaded successfully: ${result}`);
+    logger.info({
+        key
+    }, 'File uploaded successfully');
     return result;
 }
 
 async function getFromS3(key) {
-        console.log('herererereeeeee:');
     const exists = await checkS3ObjectExists(key);
-    console.log('exists:', exists);
     if (!exists) {
         throw new AppError(`File not found in S3: ${key}`, 404);
     }
@@ -29,7 +30,9 @@ async function getFromS3(key) {
     });
 
     const result = await s3Client.send(command);
-    console.log(`File retrieved successfully: ${result}`);
+    logger.info({
+        key
+    }, 'File retrieved successfully');
     return result;
 }
 
@@ -40,7 +43,9 @@ async function deleteFromS3(key) {
     });
 
     const result = await s3Client.send(command);
-    console.log(`File deleted successfully: ${result}`);
+    logger.info({
+        key
+    }, 'File deleted successfully');
     return result;
 }
 /*

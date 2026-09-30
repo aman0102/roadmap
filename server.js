@@ -1,10 +1,11 @@
 require('dotenv').config();
-
 const app = require('./app');
-const config = require('./config/env');
-const port = config.port;
+const { port } = require('./config/env');
+const { closePool } = require('./config/database');
+const redisClient = require('./config/redis.client');
 
-app.listen(port, () => {
+
+const server = app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
 
@@ -46,3 +47,29 @@ async function main() {
 main();
 
 */
+
+// Handle graceful shutdown
+
+async function shutdown(signal) {
+  console.log(`${signal} received. Starting graceful shutdown...`);
+
+  server.close(async () => {
+    console.log('HTTP server closed');
+
+    try {
+      await closePool();
+      console.log('PostgreSQL pool closed');
+
+      await redisClient.quit();
+      console.log('Redis connection closed');
+
+      process.exit(0);
+    } catch (error) {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+    }
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
