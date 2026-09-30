@@ -6,7 +6,8 @@
     "dev": "nodemon server.js",
     "stream:test": "node stream-test.js",
     "test": "dotenv -e .env.test -- jest --runInBand",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "seed": "node seeds/admin.js"
   },
   "keywords": [],
   "author": "",

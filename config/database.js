@@ -10,8 +10,9 @@ const pool = new Pool({
 
 
   max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
+  idleTimeoutMillis: 30000, // How long can an unused pool connection remain idle?
+  connectionTimeoutMillis: 2000, // How long to establish DB connection?
+  statement_timeout: 5000 //a postgres query will be canceled if it runs for more than 5 seconds
 });
 
 pool.on('error', (error) => {

@@ -4,12 +4,14 @@ const { Worker } = require('bullmq');
 const connection = require('../config/redis');
 const transporter = require('../config/mailer');
 
-console.log('Redis connection:', connection);
+console.log('Redis connection established');
 
 const worker = new Worker(
   'email',
   async (job) => {
-    console.log('Processing job:', job.id);
+    logger.info({
+      jobId: job.id
+    }, 'Processing email job');
 
     const { to, subject, text } = job.data;
     const info = await transporter.sendMail({
@@ -19,7 +21,11 @@ const worker = new Worker(
       text,
     });
 
-    console.log('Email sent:', info.messageId);
+    logger.info({
+        jobId: job.id,
+        messageId: info.messageId
+    }, 'Email sent');
+
     return 'Email sent successfully';
 
   },
